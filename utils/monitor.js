@@ -217,23 +217,29 @@ function startMonitoring(client) {
         const end = new Date(item.itemEndDate);
 
         if (now > end) {
-          // Determine win/loss (Simulated: if price <= maxBid we assume win for demo)
-          // In reality, we'd check eBay "currentHighBidder" via API (requires OAuth scopes)
-          const price = parseFloat(item.price.value);
-          if (price <= bid.max_bid) {
-            DB.updateBidStatus(bid.id, "won");
-            const user = await client.users.fetch(bid.user_id);
-            if (user)
-              user.send(
-                `🎉 **You Won!** Item: ${item.title}\nFinal Price: ${price}`
-              );
+          // Only check win/loss for actual bids, not for watches
+          if (bid.status !== "watching") {
+            // Determine win/loss (Simulated: if price <= maxBid we assume win for demo)
+            // In reality, we'd check eBay "currentHighBidder" via API (requires OAuth scopes)
+            const price = parseFloat(item.price.value);
+            if (price <= bid.max_bid) {
+              DB.updateBidStatus(bid.id, "won");
+              const user = await client.users.fetch(bid.user_id);
+              if (user)
+                user.send(
+                  `🎉 **You Won!** Item: ${item.title}\nFinal Price: ${price}`
+                );
+            } else {
+              DB.updateBidStatus(bid.id, "lost");
+              const user = await client.users.fetch(bid.user_id);
+              if (user)
+                user.send(
+                  `😢 **Lost.** Item: ${item.title}\nSold for: ${price} (Your Max: ${bid.max_bid})`
+                );
+            }
           } else {
-            DB.updateBidStatus(bid.id, "lost");
-            const user = await client.users.fetch(bid.user_id);
-            if (user)
-              user.send(
-                `😢 **Lost.** Item: ${item.title}\nSold for: ${price} (Your Max: ${bid.max_bid})`
-              );
+            // For watches, just mark as completed without win/loss message
+            DB.updateBidStatus(bid.id, "completed");
           }
           continue;
         }
