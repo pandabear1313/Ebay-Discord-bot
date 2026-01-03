@@ -63,7 +63,8 @@ A powerful Discord bot for monitoring eBay listings, analyzing market prices, an
 1. **Clone the repository**
 
 ```bash
-cd c:\Users\sherv\Downloads\Discord
+git clone https://github.com/pandabear1313/Ebay-Discord-bot.git
+cd Ebay-Discord-bot
 ```
 
 2. **Install dependencies**
